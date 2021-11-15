@@ -37,9 +37,7 @@ demo_drivers/beam/tensioned_string/Makefile
 demo_drivers/beam/unsteady_ring/Makefile
 demo_drivers/bifurcation_tracking/Makefile
 demo_drivers/biharmonic/Makefile
-demo_drivers/biharmonic/structured_2d_biharmonic/Makefile
 demo_drivers/biharmonic/two_d_biharmonic/Makefile
-demo_drivers/biharmonic/unstructured_2d_biharmonic/Makefile
 demo_drivers/darcy/Makefile
 demo_drivers/darcy/unstructured_two_d_circle/Makefile
 demo_drivers/eigenproblems/Makefile
@@ -237,7 +235,6 @@ demo_drivers/reaction_diffusion/two_d_act_inhibit/Makefile
 demo_drivers/reaction_diffusion/two_d_act_inhibit_adapt/Makefile
 demo_drivers/reaction_diffusion/unstructured_two_d_act_inhibit/Makefile
 demo_drivers/shell/Makefile
-demo_drivers/shell/circular_plate/Makefile
 demo_drivers/shell/clamped_or_pinned_shell/Makefile
 demo_drivers/shell/clamped_shell/Makefile
 demo_drivers/shell/oscillating_shell/Makefile
@@ -304,16 +301,12 @@ doc/beam/steady_ring/Makefile
 doc/beam/tensioned_string/Makefile
 doc/beam/unsteady_ring/Makefile
 doc/bugs/Makefile
-doc/c1_element/Makefile
-doc/c1_element/bell_element/Makefile
-doc/c1_element/curved_element/Makefile
 doc/change_log/Makefile
 doc/coding_conventions/Makefile
 doc/contact/Makefile
 doc/copyright/Makefile
 doc/creating_doc/Makefile
 doc/deliberately_broken_doc_for_checking/Makefile
-doc/download/Makefile
 doc/eigenproblems/Makefile
 doc/eigenproblems/complex_harmonic/Makefile
 doc/eigenproblems/harmonic/Makefile
@@ -444,7 +437,6 @@ doc/raw_doxygen/Makefile
 doc/search_results/Makefile
 doc/shell/Makefile
 doc/shell/clamped_shell/Makefile
-doc/shell/linear_shell/Makefile
 doc/solid/Makefile
 doc/solid/airy_cantilever/Makefile
 doc/solid/compressed_square/Makefile
@@ -460,7 +452,6 @@ doc/solid/unstructured_adaptive_solid/Makefile
 doc/solid/unstructured_solid/Makefile
 doc/solid/unstructured_three_d_solid/Makefile
 doc/solid/vmtk_solid/Makefile
-doc/subversion/Makefile
 doc/tar_files/Makefile
 doc/the_data_structure/Makefile
 doc/the_distribution/Makefile

@@ -35,7 +35,6 @@
 #endif
 
 
-
 namespace oomph
 {
 
@@ -54,9 +53,9 @@ namespace HelperForSortingVectorOfPairsOfVertexPtAndDouble
 }
 
 
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////
 
 
 
@@ -69,7 +68,7 @@ class CubicTetMeshFacetedSurface : public virtual TetMeshFacetedClosedSurface
 
 public: 
 
- /// \short Constructor: The six faces are enumerated consecutively
+ /// Constructor: The six faces are enumerated consecutively
  /// starting from boundary_id_offset (defaults to zero in which
  /// case the boundaries are enumerated (in one-based fashion) 1,...,6. 
  CubicTetMeshFacetedSurface(const double& box_half_width, 
@@ -85,7 +84,7 @@ public:
             one_based_boundary_id_offset);
   }
    
- /// \short Constructor: The six faces are enumerated consecutively
+ /// Constructor: The six faces are enumerated consecutively
  /// starting from boundary_id_offset (defaults to zero in which
  /// case the boundaries are enumerated (in one-based fashion) 1,...,6. 
  CubicTetMeshFacetedSurface(const double& box_half_width, 
@@ -100,7 +99,7 @@ public:
             offset,
             one_based_boundary_id_offset);
   }
- /// \short Constructor: Faceted surface defines region with (one-based!)
+ /// Constructor: Faceted surface defines region with (one-based!)
  /// ID one_based_region_id. If this parameter is zero, no region ID is 
  /// assigned. The six faces are enumerated consecutively
  /// starting from boundary_id_offset (defaults to zero in which
@@ -118,7 +117,7 @@ public:
             one_based_boundary_id_offset);
   }
    
- /// \short Constructor: Faceted surface defines region with (one-based!)
+ /// Constructor: Faceted surface defines region with (one-based!)
  /// ID one_based_region_id. If this parameter is zero, no region ID is 
  /// assigned. The six faces are enumerated consecutively
  /// starting from boundary_id_offset (defaults to zero in which
@@ -272,9 +271,9 @@ private:
 
 
 
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////
 
 
 
@@ -288,7 +287,7 @@ class RectangularTetMeshFacetedSurface : public virtual TetMeshFacetedSurface
 public: 
 
 
- /// \short Constructor: Specify dimension, offset vector and 
+ /// Constructor: Specify dimension, offset vector and 
  /// (one-based!) boundary_id.
  RectangularTetMeshFacetedSurface(const double& half_x_width, 
                                   const double& half_y_length,
@@ -354,9 +353,9 @@ private:
 };
 
 
-/////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////
+/// //////////////////////////////////////////////////////////////////////////
+/// //////////////////////////////////////////////////////////////////////////
+/// //////////////////////////////////////////////////////////////////////////
 
 
 
@@ -369,7 +368,7 @@ class DiskTetMeshFacetedSurface : public virtual TetMeshFacetedSurface
 
 public:
 
- /// \short Constructor: Pass pointer to GeomObject (with boundaries, and 
+ /// Constructor: Pass pointer to GeomObject (with boundaries, and 
  /// parametrised by coordinates without coordinate singularities, i.e. not
  /// polars, say) that defines the shape of the disk. Other args
  /// specify half the number of segments on perimeter of disk
@@ -652,7 +651,7 @@ public:
    Tri_mesh_pt=0;
   }
 
- /// \short Function that specifies the variation of the
+ /// Function that specifies the variation of the
  /// zeta coordinates in the GeomObject along the
  /// boundary connecting vertices 0 and 1 in the
  /// facet. NOTE: input zeta_boundary ranges between 0 and 1;
@@ -691,7 +690,7 @@ protected:
  unsigned Nfacet;
 
  /// Is facet on boundary?
- vector<bool> Facet_is_on_boundary;
+ std::vector<bool> Facet_is_on_boundary;
 
  /// Left boundary coordinate of i-th facet
  Vector<double> Left_boundary_coordinate;
@@ -719,9 +718,9 @@ protected:
 
 
 
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////
 
 
 
@@ -735,7 +734,7 @@ DiskTetMeshFacetedSurface, public virtual TetMeshFacetedClosedSurface
 
 public:
 
- /// \short Constructor: Pass pointer to GeomObject (with boundaries, and 
+ /// Constructor: Pass pointer to GeomObject (with boundaries, and 
  /// parametrised by coordinates without coordinate singularities, i.e. not
  /// polars, say) that defines the shape of the disk. Other args
  /// specify:
@@ -1044,18 +1043,18 @@ public:
 };
 
 
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////
 
 
 
 
 
 
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////
 
 
 
@@ -1070,7 +1069,7 @@ DiskTetMeshFacetedSurface, public virtual TetMeshFacetedClosedSurface
 
 public:
 
- /// \short Constructor: Pass pointer to GeomObject (with boundaries, and 
+ /// Constructor: Pass pointer to GeomObject (with boundaries, and 
  /// parametrised by coordinates without coordinate singularities, i.e. not
  /// polars, say) that defines the shape of the disk. Other args
  /// specify:
@@ -1251,7 +1250,7 @@ public:
  
 };
 
-
 }
+
 
 #endif

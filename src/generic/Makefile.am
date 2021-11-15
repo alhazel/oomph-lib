@@ -50,7 +50,8 @@ implicit_midpoint_rule.cc \
 preconditioner_array.cc general_purpose_block_preconditioners.cc pml_meshes.cc \
 unstructured_two_d_mesh_geometry_base.cc sample_point_container.cc \
 sample_point_parameters.cc geometric_multigrid.cc \
-extruded_macro_element.cc extruded_domain.cc
+extruded_macro_element.cc extruded_domain.cc \
+black_box_newton_solver.cc
 
 if OOMPH_HAS_MUMPS
 sources+=mumps_fortran_solver.F mumps_solver.cc
@@ -107,7 +108,6 @@ preconditioner.h \
 general_purpose_preconditioners.h block_preconditioner.h \
 general_purpose_block_preconditioners.h SuperLU_preconditioner.h \
 matrix_vector_product.h projection.h line_visualiser.h \
-Subparametric_Telements.h \
 sum_of_matrices.h implicit_midpoint_rule.h \
 trapezoid_rule.h \
 preconditioner_array.h pml_meshes.h pml_mapping_functions.h \
@@ -116,7 +116,9 @@ generalised_newtonian_constitutive_models.h \
 unstructured_two_d_mesh_geometry_base.h \
 geometric_multigrid.h sample_point_container.h \
 sample_point_parameters.h sparse_vector.h \
-geom_obj_with_boundary.h extruded_macro_element.h extruded_domain.h
+geom_obj_with_boundary.h extruded_macro_element.h extruded_domain.h \
+black_box_newton_solver.h
+
 
 if OOMPH_HAS_MUMPS
 headers+=mumps_solver.h
