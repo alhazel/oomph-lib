@@ -506,15 +506,15 @@ namespace oomph
                                     const double& sigma = 0.0)
       : Problem_pt(problem_pt), Linear_solver_pt(linear_solver_pt), Sigma(sigma)
     {
-     // No need for a distribution; gets automatically set up by the Problem
-     M_pt = new CRDoubleMatrix;
-     AsigmaM_pt = new CRDoubleMatrix;
-     
-     // Assemble the matrices
-     problem_pt->get_eigenproblem_matrices(*M_pt, *AsigmaM_pt, Sigma);
-     
-     // Do not report the time taken
-     Linear_solver_pt->disable_doc_time();
+      // No need for a distribution; gets automatically set up by the Problem
+      M_pt = new CRDoubleMatrix;
+      AsigmaM_pt = new CRDoubleMatrix;
+
+      // Assemble the matrices
+      problem_pt->get_eigenproblem_matrices(*M_pt, *AsigmaM_pt, Sigma);
+
+      // Do not report the time taken
+      Linear_solver_pt->disable_doc_time();
     }
 
 
