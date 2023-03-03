@@ -43,9 +43,6 @@
 
 namespace Anasazi
 {
-  // hierher Andrew get rid of this!
-  bool Use_temporary_code_for_andrew_legacy_version = false;
-
   //========================================================================
   /// Specialize the Anasazi traits class for the oomph-lib DoubleMultiVector.
   /// This provides the interfaces required by the Anasazi eigensolvers.
@@ -509,27 +506,15 @@ namespace oomph
                                     const double& sigma = 0.0)
       : Problem_pt(problem_pt), Linear_solver_pt(linear_solver_pt), Sigma(sigma)
     {
-      // Before we get into the Arnoldi loop solve the shifted matrix problem
-      // Allocated Row compressed matrices for the mass matrix and shifted main
-      // matrix
-      if (Anasazi::Use_temporary_code_for_andrew_legacy_version)
-      {
-        M_pt = new CRDoubleMatrix(problem_pt->dof_distribution_pt());
-        AsigmaM_pt = new CRDoubleMatrix(problem_pt->dof_distribution_pt());
-      }
-      else
-      {
-        // No need for a distribution; gets automatically set up by the Problem
-        M_pt = new CRDoubleMatrix;
-        AsigmaM_pt = new CRDoubleMatrix;
-      }
-
-
-      // Assemble the matrices
-      problem_pt->get_eigenproblem_matrices(*M_pt, *AsigmaM_pt, Sigma);
-
-      // Do not report the time taken
-      Linear_solver_pt->disable_doc_time();
+     // No need for a distribution; gets automatically set up by the Problem
+     M_pt = new CRDoubleMatrix;
+     AsigmaM_pt = new CRDoubleMatrix;
+     
+     // Assemble the matrices
+     problem_pt->get_eigenproblem_matrices(*M_pt, *AsigmaM_pt, Sigma);
+     
+     // Do not report the time taken
+     Linear_solver_pt->disable_doc_time();
     }
 
 
