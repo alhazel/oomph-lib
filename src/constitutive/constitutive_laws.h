@@ -47,8 +47,9 @@ namespace oomph
   class StrainEnergyFunction
   {
   public:
-    /// Constructor takes no arguments
-    StrainEnergyFunction() {}
+    /// Constructor takes no arguments and sets the
+    /// default number of strain invariants to 3 (isotropic case)
+    StrainEnergyFunction() : N_invariant(3) {}
 
     /// Empty virtual destructor
     virtual ~StrainEnergyFunction() {}
@@ -106,8 +107,9 @@ namespace oomph
       double FD_Jstep = 1.0e-8; // Usual comments about global stuff
       double energy = W(I);
 
+      unsigned n_invariant = this->N_invariant;
       // Loop over the strain invariants
-      for (unsigned i = 0; i < 3; i++)
+      for (unsigned i = 0; i < n_invariant; i++)
       {
         // Store old value
         double I_prev = I[i];
@@ -122,11 +124,21 @@ namespace oomph
       }
     }
 
+
+    /// Return number of strain invariants
+    unsigned ninvariant() const {return N_invariant;}
+    
     /// Pure virtual function in which the user must declare if the
     /// constitutive equation requires an incompressible formulation
     /// in which the volume constraint is enforced explicitly.
     /// Used as a sanity check in PARANOID mode.
     virtual bool requires_incompressibility_constraint() = 0;
+
+    protected:
+
+    ///Storage for the number of strain invariantes
+    unsigned N_invariant;
+
   };
 
 
@@ -531,6 +543,7 @@ namespace oomph
       const DenseMatrix<double>& G,
       const DenseMatrix<double>& sigma,
       RankFourTensor<double>& d_sigma_dG,
+      const Vector<double> &xi,
       const bool& symmetrize_tensor = true);
 
 
@@ -549,7 +562,7 @@ namespace oomph
       const DenseMatrix<double>& G,
       DenseMatrix<double>& sigma_dev,
       DenseMatrix<double>& G_contra,
-      double& Gdet)
+      double& Gdet, const Vector<double> &xi)
     {
       throw OomphLibError(
         "Incompressible formulation not implemented for this constitutive law",
@@ -578,6 +591,7 @@ namespace oomph
       const double& interpolated_solid_p,
       RankFourTensor<double>& d_sigma_dG,
       DenseMatrix<double>& d_detG_dG,
+      const Vector<double> &xi,
       const bool& symmetrize_tensor = true);
 
 
@@ -595,7 +609,8 @@ namespace oomph
       DenseMatrix<double>& sigma_dev,
       DenseMatrix<double>& Gcontra,
       double& gen_dil,
-      double& inv_kappa)
+      double& inv_kappa,
+     const Vector<double> &xi)
     {
       throw OomphLibError(
         "Near-incompressible formulation not implemented for constitutive law",
@@ -622,6 +637,7 @@ namespace oomph
       const double& interpolated_solid_p,
       RankFourTensor<double>& d_sigma_dG,
       DenseMatrix<double>& d_gen_dil_dG,
+      const Vector<double> &xi,
       const bool& symmetrize_tensor = true);
 
 
@@ -747,7 +763,8 @@ namespace oomph
                                                  const DenseMatrix<double>& G,
                                                  DenseMatrix<double>& sigma_dev,
                                                  DenseMatrix<double>& G_contra,
-                                                 double& Gdet);
+                                                 double& Gdet,
+                                                 const Vector<double> &xi);
 
 
     /// Calculate the deviatoric part of the contravariant
@@ -763,7 +780,8 @@ namespace oomph
                                                  DenseMatrix<double>& sigma_dev,
                                                  DenseMatrix<double>& Gcontra,
                                                  double& gen_dil,
-                                                 double& inv_kappa);
+                                                 double& inv_kappa,
+                                                 const Vector<double> &xi);
 
 
     /// Pure virtual function in which the writer must declare if the
@@ -799,7 +817,7 @@ namespace oomph
   //=====================================================================
   class IsotropicStrainEnergyFunctionConstitutiveLaw : public ConstitutiveLaw
   {
-  private:
+  protected:
     /// Pointer to the strain energy function
     StrainEnergyFunction* Strain_energy_function_pt;
 
@@ -835,7 +853,8 @@ namespace oomph
                                                  const DenseMatrix<double>& G,
                                                  DenseMatrix<double>& sigma_dev,
                                                  DenseMatrix<double>& G_contra,
-                                                 double& Gdet);
+                                                 double& Gdet,
+                                                 const Vector<double> &xi);
 
 
     /// Calculate the deviatoric part of the contravariant
@@ -851,7 +870,8 @@ namespace oomph
                                                  DenseMatrix<double>& sigma_dev,
                                                  DenseMatrix<double>& Gcontra,
                                                  double& gen_dil,
-                                                 double& inv_kappa);
+                                                 double& inv_kappa,
+                                                 const Vector<double> &xi);
 
 
     /// State if the constitutive equation requires an incompressible

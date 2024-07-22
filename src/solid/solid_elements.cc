@@ -402,7 +402,7 @@ namespace oomph
 
         // Get the "upper triangular" entries of the derivatives of the stress
         // tensor with respect to G
-        this->get_d_stress_dG_upper(g, G, sigma, d_stress_dG);
+        this->get_d_stress_dG_upper(g, G, sigma, d_stress_dG,interpolated_xi);
       }
 
       //=====EQUATIONS OF ELASTICITY FROM PRINCIPLE OF VIRTUAL
@@ -1516,7 +1516,7 @@ namespace oomph
       // of the deformed covariant metric tensor.
       if (Incompressible)
       {
-        get_stress(g, G, sigma_dev, Gup, detG);
+       get_stress(g, G, sigma_dev, Gup, detG, interpolated_xi);
 
         // Get full stress
         for (unsigned a = 0; a < DIM; a++)
@@ -1533,7 +1533,7 @@ namespace oomph
           // Get the "upper triangular" entries of the derivatives of the stress
           // tensor with respect to G
           this->get_d_stress_dG_upper(
-            g, G, sigma, detG, interpolated_solid_p, d_stress_dG, d_detG_dG);
+           g, G, sigma, detG, interpolated_solid_p, d_stress_dG, d_detG_dG,interpolated_xi);
         }
       }
       // Nearly incompressible: Compute the deviatoric part of the
@@ -1541,7 +1541,7 @@ namespace oomph
       // the generalised dilatation and the inverse bulk modulus.
       else
       {
-        get_stress(g, G, sigma_dev, Gup, gen_dil, inv_kappa);
+       get_stress(g, G, sigma_dev, Gup, gen_dil, inv_kappa,interpolated_xi);
 
         // Get full stress
         for (unsigned a = 0; a < DIM; a++)
@@ -1564,7 +1564,7 @@ namespace oomph
                                       inv_kappa,
                                       interpolated_solid_p,
                                       d_stress_dG,
-                                      d_gen_dil_dG);
+                                      d_gen_dil_dG,interpolated_xi);
         }
       }
 
@@ -2399,14 +2399,14 @@ namespace oomph
 
     if (Incompressible)
     {
-      get_stress(g, G, sigma_dev, Gup, detG);
+     get_stress(g, G, sigma_dev, Gup, detG, xi);
     }
     // Nearly incompressible: Compute the deviatoric part of the
     // stress tensor, the contravariant deformed metric tensor,
     // the generalised dilatation and the inverse bulk modulus.
     else
     {
-      get_stress(g, G, sigma_dev, Gup, gen_dil, inv_kappa);
+     get_stress(g, G, sigma_dev, Gup, gen_dil, inv_kappa, xi);
     }
 
     // Get complete stress

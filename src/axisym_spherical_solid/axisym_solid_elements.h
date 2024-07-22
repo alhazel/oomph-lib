@@ -697,7 +697,8 @@ namespace oomph
                     DenseMatrix<double>& sigma,
                     DenseMatrix<double>& Gup,
                     double& pressure_stress,
-                    double& kappa)
+                    double& kappa,
+                    const Vector<double> &xi)
     {
 #ifdef PARANOID
       // If the pointer to the constitutive law hasn't been set, issue an error
@@ -714,7 +715,7 @@ namespace oomph
       }
 #endif
       Constitutive_law_pt->calculate_second_piola_kirchhoff_stress(
-        g, G, sigma, Gup, pressure_stress, kappa);
+       g, G, sigma, Gup, pressure_stress, kappa,xi);
     }
 
     /// Return the stress tensor, as calculated from the constitutive law
@@ -723,7 +724,8 @@ namespace oomph
                     const DenseMatrix<double>& G,
                     DenseMatrix<double>& sigma,
                     DenseMatrix<double>& Gup,
-                    double& detG)
+                    double& detG,
+                    const Vector<double> &xi)
     {
 #ifdef PARANOID
       // If the pointer to the constitutive law hasn't been set, issue an error
@@ -740,7 +742,7 @@ namespace oomph
       }
 #endif
       Constitutive_law_pt->calculate_second_piola_kirchhoff_stress(
-        g, G, sigma, Gup, detG);
+       g, G, sigma, Gup, detG,xi);
     }
 
     /// Return whether the material is incompressible
@@ -830,7 +832,7 @@ namespace oomph
         // Calculate the local Lagrangian coordinates, position components
         // and the derivatives of global position components
         // wrt lagrangian coordinates
-        double interpolated_xi[2] = {0.0, 0.0};
+        Vector<double> interpolated_xi(2,0.0);
         double interpolated_X[2] = {0.0, 0.0};
         double interpolated_dXdxi[2][2];
         double interpolated_solid_p = 0.0;
@@ -930,12 +932,12 @@ namespace oomph
         // If it's incompressible call one form of the constitutive law
         if (Incompressible)
         {
-          get_stress(g, G, sigma, Gup, detG);
+         get_stress(g, G, sigma, Gup, detG, interpolated_xi);
         }
         // Otherwise call another form
         else
         {
-          get_stress(g, G, sigma, Gup, pressure_stress, kappa);
+         get_stress(g, G, sigma, Gup, pressure_stress, kappa, interpolated_xi);
         }
 
 
