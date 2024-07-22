@@ -354,7 +354,7 @@ namespace oomph
     const DenseMatrix<double>& G,
     const DenseMatrix<double>& sigma,
     RankFourTensor<double>& d_sigma_dG,
-    const Vector<double> &xi,
+    const Vector<double>& xi,
     const bool& symmetrize_tensor)
   {
     // Initial error checking
@@ -459,7 +459,7 @@ namespace oomph
     const double& interpolated_solid_p,
     RankFourTensor<double>& d_sigma_dG,
     DenseMatrix<double>& d_detG_dG,
-    const Vector<double> &xi,
+    const Vector<double>& xi,
     const bool& symmetrize_tensor)
   {
     // Initial error checking
@@ -509,7 +509,7 @@ namespace oomph
 
         // Get advanced stress
         this->calculate_second_piola_kirchhoff_stress(
-         g, G_pls, sigma_dev_pls, Gup_pls, detG_pls,xi);
+          g, G_pls, sigma_dev_pls, Gup_pls, detG_pls, xi);
 
 
         // Derivative of determinant of deformed metric tensor
@@ -574,7 +574,7 @@ namespace oomph
     const double& interpolated_solid_p,
     RankFourTensor<double>& d_sigma_dG,
     DenseMatrix<double>& d_gen_dil_dG,
-    const Vector<double> &xi,
+    const Vector<double>& xi,
     const bool& symmetrize_tensor)
   {
     // Initial error checking
@@ -625,7 +625,7 @@ namespace oomph
 
         // Get advanced stress
         this->calculate_second_piola_kirchhoff_stress(
-         g, G_pls, sigma_dev_pls, Gup_pls, gen_dil_pls, inv_kappa_pls,xi);
+          g, G_pls, sigma_dev_pls, Gup_pls, gen_dil_pls, inv_kappa_pls, xi);
 
         // Derivative of generalised dilatation
         d_gen_dil_dG(i, j) = (gen_dil_pls - gen_dil) / eps_fd;
@@ -772,7 +772,7 @@ namespace oomph
     DenseMatrix<double>& Gup,
     double& gen_dil,
     double& inv_kappa,
-    const Vector<double> &xi)
+    const Vector<double>& xi)
   {
     // Find the dimension of the problem
     unsigned dim = G.nrow();
@@ -782,7 +782,7 @@ namespace oomph
 
     // Compute deviatoric stress by calling the incompressible
     // version of this function
-    calculate_second_piola_kirchhoff_stress(g, G, sigma_dev, Gup, detG,xi);
+    calculate_second_piola_kirchhoff_stress(g, G, sigma_dev, Gup, detG, xi);
 
     // Calculate the inverse of the "bulk" modulus
     inv_kappa =
@@ -818,7 +818,7 @@ namespace oomph
     DenseMatrix<double>& sigma_dev,
     DenseMatrix<double>& Gup,
     double& detG,
-    const Vector<double> &xi)
+    const Vector<double>& xi)
   {
     // Error checking
 #ifdef PARANOID
@@ -1017,7 +1017,7 @@ namespace oomph
                                             DenseMatrix<double>& sigma_dev,
                                             DenseMatrix<double>& Gup,
                                             double& detG,
-                                            const Vector<double> &xi)
+                                            const Vector<double>& xi)
   {
 // Error checking
 #ifdef PARANOID
@@ -1146,7 +1146,7 @@ namespace oomph
                                             DenseMatrix<double>& Gup,
                                             double& gen_dil,
                                             double& inv_kappa,
-                                            const Vector<double> &xi)
+                                            const Vector<double>& xi)
   {
 // Error checking
 #ifdef PARANOID

@@ -242,7 +242,7 @@ namespace oomph
         // Get the "upper triangular"
         // entries of the derivatives of the stress tensor with
         // respect to G
-        this->get_d_stress_dG_upper(g, G, sigma, d_stress_dG,interpolated_xi);
+        this->get_d_stress_dG_upper(g, G, sigma, d_stress_dG, interpolated_xi);
       }
 
 
@@ -941,7 +941,7 @@ namespace oomph
       // of the deformed covariant metric tensor.
       if (this->Incompressible)
       {
-       this->get_stress(g, G, sigma_dev, Gup, detG, interpolated_xi);
+        this->get_stress(g, G, sigma_dev, Gup, detG, interpolated_xi);
 
         // Get full stress
         for (unsigned a = 0; a < DIM; a++)
@@ -958,8 +958,14 @@ namespace oomph
           // Get the "upper triangular" entries of the
           // derivatives of the stress tensor with
           // respect to G
-          this->get_d_stress_dG_upper(
-           g, G, sigma, detG, interpolated_solid_p, d_stress_dG, d_detG_dG,interpolated_xi);
+          this->get_d_stress_dG_upper(g,
+                                      G,
+                                      sigma,
+                                      detG,
+                                      interpolated_solid_p,
+                                      d_stress_dG,
+                                      d_detG_dG,
+                                      interpolated_xi);
         }
       }
       // Nearly incompressible: Compute the deviatoric part of the
@@ -967,7 +973,8 @@ namespace oomph
       // the generalised dilatation and the inverse bulk modulus.
       else
       {
-       this->get_stress(g, G, sigma_dev, Gup, gen_dil, inv_kappa,interpolated_xi);
+        this->get_stress(
+          g, G, sigma_dev, Gup, gen_dil, inv_kappa, interpolated_xi);
 
         // Get full stress
         for (unsigned a = 0; a < DIM; a++)
@@ -991,7 +998,8 @@ namespace oomph
                                       inv_kappa,
                                       interpolated_solid_p,
                                       d_stress_dG,
-                                      d_gen_dil_dG,interpolated_xi);
+                                      d_gen_dil_dG,
+                                      interpolated_xi);
         }
       }
 

@@ -570,7 +570,7 @@ namespace oomph
                                       const DenseMatrix<double>& G,
                                       const DenseMatrix<double>& sigma,
                                       RankFourTensor<double>& d_sigma_dG,
-                                      Vector<double> &xi)
+                                      Vector<double>& xi)
     {
 #ifdef PARANOID
       // If the pointer to the constitutive law hasn't been set, issue an error
@@ -588,7 +588,7 @@ namespace oomph
 #endif
       // Only bother with the symmetric part by passing false as last entry
       this->Constitutive_law_pt->calculate_d_second_piola_kirchhoff_stress_dG(
-       g, G, sigma, d_sigma_dG, xi, false);
+        g, G, sigma, d_sigma_dG, xi, false);
     }
 
 
@@ -1148,7 +1148,8 @@ namespace oomph
                            DenseMatrix<double>& sigma_dev,
                            DenseMatrix<double>& Gcontra,
                            double& gen_dil,
-                           double& inv_kappa, const Vector<double> &xi)
+                           double& inv_kappa,
+                           const Vector<double>& xi)
     {
 #ifdef PARANOID
       // If the pointer to the constitutive law hasn't been set, issue an error
@@ -1166,7 +1167,7 @@ namespace oomph
       }
 #endif
       this->Constitutive_law_pt->calculate_second_piola_kirchhoff_stress(
-       g, G, sigma_dev, Gcontra, gen_dil, inv_kappa,xi);
+        g, G, sigma_dev, Gcontra, gen_dil, inv_kappa, xi);
     }
 
 
@@ -1183,7 +1184,7 @@ namespace oomph
                                       const double& interpolated_solid_p,
                                       RankFourTensor<double>& d_sigma_dG,
                                       DenseMatrix<double>& d_gen_dil_dG,
-                                      const Vector<double> &xi)
+                                      const Vector<double>& xi)
 
     {
 #ifdef PARANOID
@@ -1262,7 +1263,8 @@ namespace oomph
                            const DenseMatrix<double>& G,
                            DenseMatrix<double>& sigma_dev,
                            DenseMatrix<double>& Gcontra,
-                           double& detG, const Vector<double> &xi)
+                           double& detG,
+                           const Vector<double>& xi)
     {
 #ifdef PARANOID
       // If the pointer to the constitutive law hasn't been set, issue an error
@@ -1280,7 +1282,7 @@ namespace oomph
       }
 #endif
       this->Constitutive_law_pt->calculate_second_piola_kirchhoff_stress(
-       g, G, sigma_dev, Gcontra, detG, xi);
+        g, G, sigma_dev, Gcontra, detG, xi);
     }
 
     ///  Return the derivative of the 2nd Piola Kirchhoff stress
@@ -1295,7 +1297,7 @@ namespace oomph
                                       const double& interpolated_solid_p,
                                       RankFourTensor<double>& d_sigma_dG,
                                       DenseMatrix<double>& d_detG_dG,
-                                      Vector<double> & xi)
+                                      Vector<double>& xi)
     {
 #ifdef PARANOID
       // If the pointer to the constitutive law hasn't been set, issue an error
@@ -1314,7 +1316,15 @@ namespace oomph
 #endif
       // Only bother with the symmetric part by passing false as last entry
       this->Constitutive_law_pt->calculate_d_second_piola_kirchhoff_stress_dG(
-       g, G, sigma, detG, interpolated_solid_p, d_sigma_dG, d_detG_dG, xi, false);
+        g,
+        G,
+        sigma,
+        detG,
+        interpolated_solid_p,
+        d_sigma_dG,
+        d_detG_dG,
+        xi,
+        false);
     }
   };
 
