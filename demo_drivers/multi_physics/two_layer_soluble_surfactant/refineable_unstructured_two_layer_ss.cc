@@ -1609,12 +1609,17 @@ void deform_interface(const double &epsilon,
 	    if(std::abs(y[0] - 2*y[1] + y[2]) > 1.0e-10)
 	      {
 		//Calculate extreme value of the local coordinate based on known
-		//quadratic basis functions (This shoudl really be inside the element class)
-		Vector<double> extreme_s(1,0.5*(y[0] - y[2])/(y[0] - 2.0*y[1] + y[2]));
+		//quadratic basis functions
+		//(This should really be inside the element class)
+		Vector<double> extreme_s(1,0.5*(y[0] - y[2])/
+					 (y[0] - 2.0*y[1] + y[2]));
+
+		//In triangles rescale from zero to 1
+		extreme_s[0] = 0.5*(1.0 + extreme_s[0]);
 
 		//Find the extreme height if the local coordinate is within the
-		//rane of the element
-		if(std::abs(extreme_s[0]) <= 1.0)
+		//range of the element
+		if((extreme_s[0] >= 0.0) && (extreme_s[0] <= 1.0))
 		  {
 		    double extreme_h = el_pt->interpolated_x(extreme_s,1);
 		    //Check whether the extreme value is greater than any of the nodes.

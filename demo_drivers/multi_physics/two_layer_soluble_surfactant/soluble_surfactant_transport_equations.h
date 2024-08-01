@@ -518,12 +518,14 @@ void output(std::ostream &outfile, const unsigned &n_plot)
    const double C = this->interpolated_C(s);
    const double C_bulk = this->interpolated_C_bulk(s);
    const double M = this->interpolated_M(s);
+   const double Bi = this->bi();
+   const double K = this->k();
    
    //Output the concentrations
    outfile << C << " "
 	   << C_bulk << " "
            << M << " "
-	   << this->bi()*(this->k()*C_bulk*(1.0 - C) - C) << std::endl;
+	   << Bi*(K*C_bulk*(1.0 - C) - C) << std::endl;
   }
  outfile << std::endl;
 }

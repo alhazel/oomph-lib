@@ -29984,7 +29984,7 @@ namespace oomph
       }
 
 
-      // ==============================================================
+      // ====================================================34==========
       // END: Updating of boundaries representation (unrefinement and
       // refinement of polylines)
       // ==============================================================
@@ -34571,11 +34571,7 @@ namespace oomph
         this->copy_connection_information(polygon_pt->polyline_pt(p),
                                           tmp_curve_section_pt);
 
-        // Now update the polyline according to the new vertices but
-        // first check if the object is allowed to delete the representation
-        // or if it should be done by other object
-        bool delete_it_on_destructor = false;
-
+        // Now update the polyline according to the new vertices
         std::set<TriangleMeshCurveSection*>::iterator it =
           this->Free_curve_section_pt.find(polygon_pt->curve_section_pt(p));
 
@@ -34583,9 +34579,8 @@ namespace oomph
         {
           this->Free_curve_section_pt.erase(it);
           delete polygon_pt->curve_section_pt(p);
-          delete_it_on_destructor = true;
         }
-
+	
         // ------------------------------------------------------------
         // Copying the new representation
         polygon_pt->curve_section_pt(p) = tmp_polyline_pt;

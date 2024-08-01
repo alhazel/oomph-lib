@@ -76,7 +76,7 @@ echo "Validation directory: " >> validation.log
 echo " " >> validation.log
 echo "  " `pwd` >> validation.log
 echo " " >> validation.log
-cat RESLT/trace.dat RESLT/int5.dat RESLT/soln5.dat > uns_ref_2layer_sol_surf.dat
+cat RESLT/trace.dat  > uns_ref_2layer_sol_surf.dat
 mv RESLT RESLT_uns_ref_2layer
 
 if test "$1" = "no_fpdiff"; then
