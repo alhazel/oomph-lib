@@ -34580,7 +34580,7 @@ namespace oomph
           this->Free_curve_section_pt.erase(it);
           delete polygon_pt->curve_section_pt(p);
         }
-	
+
         // ------------------------------------------------------------
         // Copying the new representation
         polygon_pt->curve_section_pt(p) = tmp_polyline_pt;
