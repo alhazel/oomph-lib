@@ -10,7 +10,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install requirements
-        run: brew install make automake libtool autoconf doxygen && brew reinstall gfortran
+        run: brew install make automake libtool autoconf doxygen && brew reinstall gfortran sed
 
       - name: Extra config
         run:
