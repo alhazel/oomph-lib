@@ -10,11 +10,11 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install requirements
-        run: brew install make automake libtool autoconf doxygen && brew reinstall gfortran sed
+        run: brew install make automake libtool autoconf doxygen && brew reinstall gfortran gnu-sed
 
       - name: Extra config
         run:
-          sed -i -e 's/CFLAGS="\(.*\)"/CFLAGS="\1 -Wno-error=implicit-function-declaration -Wno-error=implicit-int"/g' config/configure_options/default \
+          gsed -i -e 's/CFLAGS="\(.*\)"/CFLAGS="\1 -Wno-error=implicit-function-declaration -Wno-error=implicit-int"/g' config/configure_options/default \
           && printf '%s\n' '--enable-suppress-cgal-build --disable-shared' >> config/configure_options/default \
           && ( export LC_ALL=C; sort -o config/configure_options/default config/configure_options/default )
 
