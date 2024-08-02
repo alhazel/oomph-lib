@@ -12,10 +12,13 @@ jobs:
       - name: Install requirements
         run: brew install make automake libtool autoconf doxygen && brew reinstall gfortran gnu-sed
 
-      - name: Extra config
+      - name: Extra config 1
         run:
-          ( gsed -i'' -e 's/CFLAGS="\(.*\)"/CFLAGS="\1 -Wno-error=implicit-function-declaration -Wno-error=implicit-int"/g' config/configure_options/default )  \ 
-          && printf '%s\n' '--enable-suppress-cgal-build --disable-shared' >> config/configure_options/default  \
+          gsed -i'' -e 's/CFLAGS="\(.*\)"/CFLAGS="\1 -Wno-error=implicit-function-declaration -Wno-error=implicit-int"/g' config/configure_options/default  
+         
+      - name: Extra config 2
+        run:
+          printf '%s\n' '--enable-suppress-cgal-build --disable-shared' >> config/configure_options/default  \
           && ( export LC_ALL=C; sort -o config/configure_options/default config/configure_options/default )
 
       - name: Build
