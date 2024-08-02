@@ -14,7 +14,8 @@ jobs:
 
       - name: Extra config
         run:
-          printf '%s\n' '--enable-suppress-cgal-build --disable-shared' >> config/configure_options/default \
+	  sed -i -e 's/CFLAGS="\(.*\)"/CFLAGS="\1 -Wno-error=implicit-function-declaration -Wno-error=implicit-int"/g' config/configure_options/default \
+          && printf '%s\n' '--enable-suppress-cgal-build --disable-shared' >> config/configure_options/default \
           && ( export LC_ALL=C; sort -o config/configure_options/default config/configure_options/default )
 
       - name: Build
