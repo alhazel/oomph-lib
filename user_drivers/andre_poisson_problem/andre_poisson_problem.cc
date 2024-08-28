@@ -356,6 +356,392 @@ class HomotopyTriangleEllipse : public GeomObject
     bool Must_clean_up;
   };
 
+/// ////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////
+/// This geometric object represents the boundary shape that
+/// is a homotopy between a triangle and an ellipse.
+class HomotopyTriangleEllipseCartesian : public GeomObject
+  {
+  public:
+    /// Constructor: 1 Lagrangian coordinate, 2 Eulerian coords. Pass
+    /// half axes and homotopy parameter as Data:
+    /// \code
+    /// Geom_data_pt[0]->value(0) = A
+    /// Geom_data_pt[0]->value(1) = B
+    /// Geom_data_pt[0]->value(2) = m
+    /// \endcode
+    HomotopyTriangleEllipseCartesian(const Vector<Data*>& geom_data_pt) :
+      GeomObject(1, 2)
+    {
+#ifdef PARANOID
+      if (geom_data_pt.size() != 1)
+      {
+        std::ostringstream error_message;
+        error_message << "geom_data_pt should have size 1, not "
+                      << geom_data_pt.size() << std::endl;
+
+        if (geom_data_pt[0]->nvalue() != 3)
+        {
+          error_message << "geom_data_pt[0] should have 3 values, not "
+                        << geom_data_pt[0]->nvalue() << std::endl;
+        }
+
+        throw OomphLibError(error_message.str(),
+                            OOMPH_CURRENT_FUNCTION,
+                            OOMPH_EXCEPTION_LOCATION);
+     }
+#endif
+      Geom_data_pt.resize(1);
+      Geom_data_pt[0] = geom_data_pt[0];
+
+      // Data has been created externally: Must not clean up
+      Must_clean_up = false;
+    }
+
+
+    /// Constructor: 1 Lagrangian coordinate, 2 Eulerian coords. Pass
+    /// half axes A and B, and homotopy parameter m; both pinned.
+    HomotopyTriangleEllipseCartesian(const double& A, const double& B,
+			    const double& m) : GeomObject(1, 2)
+    {
+      // Resize Data for ellipse object:
+      Geom_data_pt.resize(1);
+
+      // Create data: Two values, no timedependence, free by default
+      Geom_data_pt[0] = new Data(3);
+
+      // I've created the data, I need to clean up
+      Must_clean_up = true;
+
+      // Pin the data
+      Geom_data_pt[0]->pin(0);
+      Geom_data_pt[0]->pin(1);
+      Geom_data_pt[0]->pin(2);
+
+      // Set half axes
+      Geom_data_pt[0]->set_value(0, A);
+      Geom_data_pt[0]->set_value(1, B);
+      Geom_data_pt[0]->set_value(2, m);
+
+
+      //Now we find the x_limits
+      X_limit.resize(2);
+      X_limit[0] = this->find_x_limit(-1);
+      X_limit[1] = this->find_x_limit(1);
+    }
+
+    /// Broken copy constructor
+    HomotopyTriangleEllipseCartesian(
+     const HomotopyTriangleEllipseCartesian& dummy) = delete;
+
+    /// Broken assignment operator
+    void operator=(const HomotopyTriangleEllipseCartesian&) = delete;
+
+    /// Destructor:  Clean up if necessary
+    ~HomotopyTriangleEllipseCartesian()
+    {
+      // Do I need to clean up?
+      if (Must_clean_up)
+      {
+        delete Geom_data_pt[0];
+        Geom_data_pt[0] = 0;
+      }
+    }
+
+    /// Set horizontal half axis
+    void set_A_ellips(const double& a)
+    {
+      Geom_data_pt[0]->set_value(0, a);
+    }
+
+    /// Set vertical half axis
+    void set_B_ellips(const double& b)
+    {
+      Geom_data_pt[0]->set_value(1, b);
+    }
+
+    //Set homotopy parameter
+    void set_m_ellips(const double &m)
+    {
+      Geom_data_pt[0]->set_value(2,m);
+    }
+
+    /// Access function for horizontal half axis
+    double a_ellips()
+    {
+      return Geom_data_pt[0]->value(0);
+    }
+
+    /// Access function for vertical half axis
+    double b_ellips()
+    {
+      return Geom_data_pt[0]->value(1);
+    }
+
+    /// Access function for homotopy parameter
+    double m_ellips()
+    {
+      return Geom_data_pt[0]->value(2);
+    }
+
+    /// Return the square of the height y as a function of x
+    //using the formula given by Andre. Note that this could be negative
+    double y_square_value(const double &x) const
+    {
+      const double a = Geom_data_pt[0]->value(0);
+      const double b = Geom_data_pt[0]->value(1);
+      const double m = Geom_data_pt[0]->value(2);
+      const double lambda = b/a;
+      
+      return ((((2.0 - 2.0*pow(x, 2.0))*pow(lambda, 2.0) 
+		- m*(2.0*pow(x, 2.0) + 2.0*(lambda*x) + 2.0*pow(lambda, 2.0) 
+		     + 2.0*(x*pow(lambda, 3.0))))*sqrt(3.0*pow(lambda, 2.0)
+						       + 1.0) 
+	       + m*(3.0*pow(lambda, 5.0) + 3.0*(x*pow(lambda, 4.0)) 
+		    + (pow(x, 2.0) + 4.0)*pow(lambda, 3.0) 
+		    + (pow(x, 3.0) + 2.0*pow(x, 2.0) + 4.0*x - 2.0)*
+		    pow(lambda, 2.0) + lambda*(pow(x, 2.0) + 1.0) 
+		    + pow(x, 3.0) + x) + (2.0 - 2.0*pow(x, 2.0))*
+	       pow(lambda, 2.0)) 
+	      / ((2.0 - 2.0*m)*sqrt(3.0*pow(lambda, 2.0) + 1) 
+		 + m*(3.0*pow(lambda, 3.0) + 3.0*(x*pow(lambda, 2.0)) + 3.0*lambda
+		      + 3.0*x - 2.0) + 2.0));
+    }
+
+
+    //Return the sign of the value of y to within a tolerance
+    //default 1.0e-14
+    int sign_y_square(const double &x,
+		      const double &tolerance=1.0e-15) const
+    {
+      double y = y_square_value(x);
+      if(std::abs(y) < tolerance) {return 0;}
+      else
+	{
+	  if(y > 0) {return 1;}
+	  else {return -1;}
+	}
+    }
+
+
+    //Find the minimum or maximum value of x
+    double find_x_limit(const int &sign_incr) const
+    {
+      double x_incr = sign_incr*0.1;
+      double x = 0.0;
+      int old_sign = sign_y_square(x);
+
+      do
+	{
+	  x += x_incr;
+	  int sign = sign_y_square(x);
+	  //If we'be hit the limit return
+	  if(sign == 0) {return x;}
+	  //Otherwise check for a sign change
+	  if(sign != old_sign)
+	    {
+	      //Change the incremenet
+	      x_incr *= -0.5;
+	    }
+	  //Update the sign
+	  old_sign = sign;
+	}
+      while(true);
+      
+    }
+
+    
+
+    
+    /// Position Vector at Lagrangian coordinate zeta
+    void position(const Vector<double>& zeta, Vector<double>& r) const
+    {
+      const double pi = 4.0*atan(1.0);
+      const double theta = zeta[0];
+      
+      //The upper and lower values of x have been found, so let's create a
+      //simple linear mapping between theta and these values:
+      double x_range = X_limit[1] - X_limit[0];
+
+      //Convert theta to x
+      double x = 0.0;
+      //Upper half-plane
+      if(theta < pi)
+	{
+	  x = X_limit[1] - (theta/pi)*x_range;
+	}
+      //Lower half plane
+      else
+	{
+	  x = X_limit[1] + (theta/pi - 2.0)*x_range;
+	}
+
+      //Now we get y
+      double y = y_square_value(x);
+      //Deal with finite precision
+      if(std::abs(y) < 1.0e-14) {y = 0.0;}
+      
+      if(y < 0.0)
+	{
+	  std::cout << "Y is " << y << "\n";
+	  throw OomphLibError("Negative value in argument to square-root\n",
+			      OOMPH_CURRENT_FUNCTION,
+			      OOMPH_EXCEPTION_LOCATION);
+	}
+      else
+	{
+	  //Upper half
+	  if(theta < pi)
+	    {
+	      y = sqrt(y);
+	    }
+	  //Lower half
+	  else
+	    {
+	      y = -sqrt(y);
+	    }
+	}
+      
+      r[0] = x; r[1] = y;
+      
+      
+      //Finally convert using the formula given by Andre
+      /*double x = r[0];
+      double y = sqrt((((2.0 - 2.0*pow(x, 2.0))*pow(lambda, 2.0) 
+		- m*(2.0*pow(x, 2.0) + 2.0*(lambda*x) + 2.0*pow(lambda, 2.0) 
+		     + 2.0*(x*pow(lambda, 3.0))))*sqrt(3.0*pow(lambda, 2.0)
+						       + 1.0) 
+	       + m*(3.0*pow(lambda, 5.0) + 3.0*(x*pow(lambda, 4.0)) 
+		    + (pow(x, 2.0) + 4.0)*pow(lambda, 3.0) 
+		    + (pow(x, 3.0) + 2.0*pow(x, 2.0) + 4.0*x - 2.0)*
+		    pow(lambda, 2.0) + lambda*(pow(x, 2.0) + 1.0) 
+		    + pow(x, 3.0) + x) + (2.0 - 2.0*pow(x, 2.0))*
+		       pow(lambda, 2.0)) 
+       / ((2.0 - 2.0*m)*sqrt(3.0*pow(lambda, 2.0) + 1) 
+	  + m*(3.0*pow(lambda, 3.0) + 3.0*(x*pow(lambda, 2.0)) + 3.0*lambda
+	       + 3.0*x - 2.0) + 2.0));
+	
+      r[1] = y;
+      //In the lower-half multiply y by minus 1
+      if(theta > 4.0*atan(1.0)) {r[1] *= -1.0;}*/
+    }
+
+
+    /// Parametrised position on object: r(zeta). Evaluated at
+    /// previous timestep. t=0: current time; t>0: previous
+    /// timestep.
+    void position(const unsigned& t,
+                  const Vector<double>& zeta,
+                  Vector<double>& r) const
+    {
+      // If we have done the construction, it's a Steady HomotopyTriangleEllipse,
+      // so all time-history values of the position are equal to the position
+      if (Must_clean_up)
+      {
+        position(zeta, r);
+        return;
+      }
+
+      // Otherwise check that the value of t is within range
+#ifdef PARANOID
+      if (t > Geom_data_pt[0]->time_stepper_pt()->nprev_values())
+      {
+        std::ostringstream error_message;
+        error_message << "t > nprev_values() " << t << " "
+                      << Geom_data_pt[0]->time_stepper_pt()->nprev_values()
+                      << std::endl;
+
+        throw OomphLibError(error_message.str(),
+                            OOMPH_CURRENT_FUNCTION,
+                            OOMPH_EXCEPTION_LOCATION);
+      }
+#endif
+
+      // Position Vector
+      r[0] = Geom_data_pt[0]->value(t, 0) * cos(zeta[0]);
+      r[1] = Geom_data_pt[0]->value(t, 1) * sin(zeta[0]);
+    }
+
+
+    /// Derivative of position Vector w.r.t. to coordinates:
+    /// \f$ \frac{dR_i}{d \zeta_\alpha}\f$ = drdzeta(alpha,i).
+    void dposition(const Vector<double>& zeta,
+                   DenseMatrix<double>& drdzeta) const
+    {
+      exit(1);
+      // Components of the single tangent Vector
+      drdzeta(0, 0) = -Geom_data_pt[0]->value(0) * sin(zeta[0]);
+      drdzeta(0, 1) = Geom_data_pt[0]->value(1) * cos(zeta[0]);
+    }
+
+
+    /// 2nd derivative of position Vector w.r.t. to coordinates:
+    /// \f$ \frac{d^2R_i}{d \zeta_\alpha d \zeta_\beta}\f$ =
+    /// ddrdzeta(alpha,beta,i).
+    /// Evaluated at current time.
+    void d2position(const Vector<double>& zeta,
+                    RankThreeTensor<double>& ddrdzeta) const
+    {
+      exit(1);
+      // Components of the derivative of the tangent Vector
+      ddrdzeta(0, 0, 0) = -Geom_data_pt[0]->value(0) * cos(zeta[0]);
+      ddrdzeta(0, 0, 1) = -Geom_data_pt[0]->value(1) * sin(zeta[0]);
+    }
+
+    /// Position Vector and 1st and 2nd derivs to coordinates:
+    /// \f$ \frac{dR_i}{d \zeta_\alpha}\f$ = drdzeta(alpha,i).
+    /// \f$ \frac{d^2R_i}{d \zeta_\alpha d \zeta_\beta}\f$ =
+    /// ddrdzeta(alpha,beta,i).
+    /// Evaluated at current time.
+    void d2position(const Vector<double>& zeta,
+                    Vector<double>& r,
+                    DenseMatrix<double>& drdzeta,
+                    RankThreeTensor<double>& ddrdzeta) const
+    {
+      exit(1);
+      double a = Geom_data_pt[0]->value(0);
+      double b = Geom_data_pt[0]->value(1);
+      // Position Vector
+      r[0] = a * cos(zeta[0]);
+      r[1] = b * sin(zeta[0]);
+
+      // Components of the single tangent Vector
+      drdzeta(0, 0) = -a * sin(zeta[0]);
+      drdzeta(0, 1) = b * cos(zeta[0]);
+
+      // Components of the derivative of the tangent Vector
+      ddrdzeta(0, 0, 0) = -a * cos(zeta[0]);
+      ddrdzeta(0, 0, 1) = -b * sin(zeta[0]);
+    }
+
+
+    /// How many items of Data does the shape of the object depend on?
+    unsigned ngeom_data() const
+    {
+      return Geom_data_pt.size();
+    }
+
+    /// Return pointer to the j-th Data item that the object's
+    /// shape depends on
+    Data* geom_data_pt(const unsigned& j)
+    {
+      return Geom_data_pt[j];
+    }
+
+  private:
+    /// Vector of pointers to Data items that affects the object's shape
+    Vector<Data*> Geom_data_pt;
+
+    /// Do I need to clean up?
+    bool Must_clean_up;
+
+    /// Storage for x_limits
+    Vector<double> X_limit;
+
+};
+
+
 
 //==start_of_problem_class============================================
 /// Class definition
@@ -437,10 +823,10 @@ UnstructuredPoissonProblem<ELEMENT>::UnstructuredPoissonProblem()
  double x_center = 0.0;
  double y_center = 0.0;
  double A = 1.0;
- double B = 0.6;
- double M = 0.1;
- HomotopyTriangleEllipse * outer_boundary_ellipse_pt =
-   new HomotopyTriangleEllipse(A,B,M);
+ double B = 0.5766;//0.6;
+ double M = 0.3529;//0.1;
+ HomotopyTriangleEllipseCartesian * outer_boundary_ellipse_pt =
+   new HomotopyTriangleEllipseCartesian(A,B,M);
 
  //Let's see the shape
  {
@@ -457,7 +843,7 @@ UnstructuredPoissonProblem<ELEMENT>::UnstructuredPoissonProblem()
        zeta[0] += theta_incr;
      }
    shape.close();
-   exit(1);
+   //exit(1);
    }
        
  // Pointer to the closed curve that defines the outer boundary
@@ -554,7 +940,7 @@ UnstructuredPoissonProblem<ELEMENT>::UnstructuredPoissonProblem()
    //-----------
    zeta_start=MathematicalConstants::Pi;
    zeta_end=2.0*MathematicalConstants::Pi;
-   nsegment=8;
+   nsegment=5;
    boundary_id=1;
    outer_curvilinear_boundary_pt[1]=new TriangleMeshCurviLine(
     outer_boundary_ellipse_pt,zeta_start,zeta_end,nsegment,boundary_id);
