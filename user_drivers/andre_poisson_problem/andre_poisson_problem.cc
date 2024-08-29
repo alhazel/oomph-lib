@@ -38,41 +38,17 @@ using namespace std;
 using namespace oomph;
 
 
-
-
-//===== start_of_namespace=============================================
-/// Namespace for exact solution for Poisson equation with "sharp step" 
+/// Namespace for source function (constant -1) 
 //=====================================================================
-namespace TanhSolnForPoisson
+namespace ConstantSourceFunction
 {
-
- /// Parameter for steepness of "step"
- double Alpha=5.0;
-
- /// Parameter for angle Phi of "step"
- double TanPhi=0.0;
-
- /// Exact solution as a Vector
- void get_exact_u(const Vector<double>& x, Vector<double>& u)
- {
-  u[0]=tanh(1.0-Alpha*(TanPhi*x[0]-x[1]));
- }
-
  /// Source function required to make the solution above an exact solution 
- void get_source(const Vector<double>& x, double& source)
- {
-   source = -1.0;
- }
- 
-
- /// Zero function -- used to compute norm of the computed solution by 
- /// computing the norm of the error when compared against this.
- void zero(const Vector<double>& x, Vector<double>& u)
- {
-  u[0]=0.0;
- }
-
+  void get_source(const Vector<double>& x, double& source)
+  {
+    source = -1.0;
+  }
 } // end of namespace
+
 
 
 
@@ -80,46 +56,13 @@ namespace TanhSolnForPoisson
 /// ////////////////////////////////////////////////////////
 /// ////////////////////////////////////////////////////////
 /// This geometric object represents the boundary shape that
-/// is a homotopy between a triangle and an ellipse.
+/// is a homotopy between a triangle and an ellipse by making
+/// a transform between the boundaries. The difficulty with
+/// this approach is that it does not lead to smooth boundaries.
+/////////////////////////////////////////////////////////////////
 class HomotopyTriangleEllipse : public GeomObject
   {
   public:
-    /// Constructor: 1 Lagrangian coordinate, 2 Eulerian coords. Pass
-    /// half axes and homotopy parameter as Data:
-    /// \code
-    /// Geom_data_pt[0]->value(0) = A
-    /// Geom_data_pt[0]->value(1) = B
-    /// Geom_data_pt[0]->value(2) = m
-    /// \endcode
-    HomotopyTriangleEllipse(const Vector<Data*>& geom_data_pt) :
-      GeomObject(1, 2)
-    {
-#ifdef PARANOID
-      if (geom_data_pt.size() != 1)
-      {
-        std::ostringstream error_message;
-        error_message << "geom_data_pt should have size 1, not "
-                      << geom_data_pt.size() << std::endl;
-
-        if (geom_data_pt[0]->nvalue() != 3)
-        {
-          error_message << "geom_data_pt[0] should have 3 values, not "
-                        << geom_data_pt[0]->nvalue() << std::endl;
-        }
-
-        throw OomphLibError(error_message.str(),
-                            OOMPH_CURRENT_FUNCTION,
-                            OOMPH_EXCEPTION_LOCATION);
-     }
-#endif
-      Geom_data_pt.resize(1);
-      Geom_data_pt[0] = geom_data_pt[0];
-
-      // Data has been created externally: Must not clean up
-      Must_clean_up = false;
-    }
-
-
     /// Constructor: 1 Lagrangian coordinate, 2 Eulerian coords. Pass
     /// half axes A and B, and homotopy parameter m; both pinned.
     HomotopyTriangleEllipse(const double& A, const double& B,
@@ -130,9 +73,6 @@ class HomotopyTriangleEllipse : public GeomObject
 
       // Create data: Two values, no timedependence, free by default
       Geom_data_pt[0] = new Data(3);
-
-      // I've created the data, I need to clean up
-      Must_clean_up = true;
 
       // Pin the data
       Geom_data_pt[0]->pin(0);
@@ -154,12 +94,9 @@ class HomotopyTriangleEllipse : public GeomObject
     /// Destructor:  Clean up if necessary
     ~HomotopyTriangleEllipse()
     {
-      // Do I need to clean up?
-      if (Must_clean_up)
-      {
+      //Delete the allocated data
         delete Geom_data_pt[0];
         Geom_data_pt[0] = 0;
-      }
     }
 
     /// Set horizontal half axis
@@ -254,40 +191,17 @@ class HomotopyTriangleEllipse : public GeomObject
                   const Vector<double>& zeta,
                   Vector<double>& r) const
     {
-      // If we have done the construction, it's a Steady HomotopyTriangleEllipse,
-      // so all time-history values of the position are equal to the position
-      if (Must_clean_up)
-      {
-        position(zeta, r);
-        return;
-      }
-
-      // Otherwise check that the value of t is within range
-#ifdef PARANOID
-      if (t > Geom_data_pt[0]->time_stepper_pt()->nprev_values())
-      {
-        std::ostringstream error_message;
-        error_message << "t > nprev_values() " << t << " "
-                      << Geom_data_pt[0]->time_stepper_pt()->nprev_values()
-                      << std::endl;
-
-        throw OomphLibError(error_message.str(),
-                            OOMPH_CURRENT_FUNCTION,
-                            OOMPH_EXCEPTION_LOCATION);
-      }
-#endif
-
-      // Position Vector
-      r[0] = Geom_data_pt[0]->value(t, 0) * cos(zeta[0]);
-      r[1] = Geom_data_pt[0]->value(t, 1) * sin(zeta[0]);
+      //No time dependence in boundary
+      position(zeta, r);
+      return;
     }
-
 
     /// Derivative of position Vector w.r.t. to coordinates:
     /// \f$ \frac{dR_i}{d \zeta_\alpha}\f$ = drdzeta(alpha,i).
     void dposition(const Vector<double>& zeta,
                    DenseMatrix<double>& drdzeta) const
     {
+      //Not implemented so break
       exit(1);
       // Components of the single tangent Vector
       drdzeta(0, 0) = -Geom_data_pt[0]->value(0) * sin(zeta[0]);
@@ -302,6 +216,7 @@ class HomotopyTriangleEllipse : public GeomObject
     void d2position(const Vector<double>& zeta,
                     RankThreeTensor<double>& ddrdzeta) const
     {
+      //Not implemented so break
       exit(1);
       // Components of the derivative of the tangent Vector
       ddrdzeta(0, 0, 0) = -Geom_data_pt[0]->value(0) * cos(zeta[0]);
@@ -318,6 +233,7 @@ class HomotopyTriangleEllipse : public GeomObject
                     DenseMatrix<double>& drdzeta,
                     RankThreeTensor<double>& ddrdzeta) const
     {
+      //Not implemented so break
       exit(1);
       double a = Geom_data_pt[0]->value(0);
       double b = Geom_data_pt[0]->value(1);
@@ -351,55 +267,20 @@ class HomotopyTriangleEllipse : public GeomObject
   private:
     /// Vector of pointers to Data items that affects the object's shape
     Vector<Data*> Geom_data_pt;
-
-    /// Do I need to clean up?
-    bool Must_clean_up;
   };
 
 /// ////////////////////////////////////////////////////////
 /// ////////////////////////////////////////////////////////
 /// ////////////////////////////////////////////////////////
 /// This geometric object represents the boundary shape that
-/// is a homotopy between a triangle and an ellipse.
+/// is a homotopy between a triangle and an ellipse based on
+/// the zero contour of a function. The formula was provided
+/// by Andre von Bories Lopes.
+/// ////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////
 class HomotopyTriangleEllipseCartesian : public GeomObject
   {
   public:
-    /// Constructor: 1 Lagrangian coordinate, 2 Eulerian coords. Pass
-    /// half axes and homotopy parameter as Data:
-    /// \code
-    /// Geom_data_pt[0]->value(0) = A
-    /// Geom_data_pt[0]->value(1) = B
-    /// Geom_data_pt[0]->value(2) = m
-    /// \endcode
-    HomotopyTriangleEllipseCartesian(const Vector<Data*>& geom_data_pt) :
-      GeomObject(1, 2)
-    {
-#ifdef PARANOID
-      if (geom_data_pt.size() != 1)
-      {
-        std::ostringstream error_message;
-        error_message << "geom_data_pt should have size 1, not "
-                      << geom_data_pt.size() << std::endl;
-
-        if (geom_data_pt[0]->nvalue() != 3)
-        {
-          error_message << "geom_data_pt[0] should have 3 values, not "
-                        << geom_data_pt[0]->nvalue() << std::endl;
-        }
-
-        throw OomphLibError(error_message.str(),
-                            OOMPH_CURRENT_FUNCTION,
-                            OOMPH_EXCEPTION_LOCATION);
-     }
-#endif
-      Geom_data_pt.resize(1);
-      Geom_data_pt[0] = geom_data_pt[0];
-
-      // Data has been created externally: Must not clean up
-      Must_clean_up = false;
-    }
-
-
     /// Constructor: 1 Lagrangian coordinate, 2 Eulerian coords. Pass
     /// half axes A and B, and homotopy parameter m; both pinned.
     HomotopyTriangleEllipseCartesian(const double& A, const double& B,
@@ -410,9 +291,6 @@ class HomotopyTriangleEllipseCartesian : public GeomObject
 
       // Create data: Two values, no timedependence, free by default
       Geom_data_pt[0] = new Data(3);
-
-      // I've created the data, I need to clean up
-      Must_clean_up = true;
 
       // Pin the data
       Geom_data_pt[0]->pin(0);
@@ -425,7 +303,7 @@ class HomotopyTriangleEllipseCartesian : public GeomObject
       Geom_data_pt[0]->set_value(2, m);
 
 
-      //Now we find the x_limits
+      //Now we find and store the x_limits of the shape
       X_limit.resize(2);
       X_limit[0] = this->find_x_limit(-1);
       X_limit[1] = this->find_x_limit(1);
@@ -441,12 +319,9 @@ class HomotopyTriangleEllipseCartesian : public GeomObject
     /// Destructor:  Clean up if necessary
     ~HomotopyTriangleEllipseCartesian()
     {
-      // Do I need to clean up?
-      if (Must_clean_up)
-      {
+      //Clean up the allocated storage
         delete Geom_data_pt[0];
         Geom_data_pt[0] = 0;
-      }
     }
 
     /// Set horizontal half axis
@@ -486,14 +361,17 @@ class HomotopyTriangleEllipseCartesian : public GeomObject
     }
 
     /// Return the square of the height y as a function of x
-    //using the formula given by Andre. Note that this could be negative
+    // using the formula given by Andre. Note that this could be negative
+    // which is why we use it in the root-finding to calculate the x limits.
     double y_square_value(const double &x) const
     {
+      //Read out the geometric information
       const double a = Geom_data_pt[0]->value(0);
       const double b = Geom_data_pt[0]->value(1);
       const double m = Geom_data_pt[0]->value(2);
       const double lambda = b/a;
-      
+
+      //Formula provided by Andre
       return ((((2.0 - 2.0*pow(x, 2.0))*pow(lambda, 2.0) 
 		- m*(2.0*pow(x, 2.0) + 2.0*(lambda*x) + 2.0*pow(lambda, 2.0) 
 		     + 2.0*(x*pow(lambda, 3.0))))*sqrt(3.0*pow(lambda, 2.0)
@@ -510,13 +388,16 @@ class HomotopyTriangleEllipseCartesian : public GeomObject
     }
 
 
-    //Return the sign of the value of y to within a tolerance
-    //default 1.0e-14
+    //Return the sign of the value of the y_square value
+    //to within a tolerance default 1.0e-14
     int sign_y_square(const double &x,
-		      const double &tolerance=1.0e-15) const
+		      const double &tolerance=1.0e-14) const
     {
+      //Get y
       double y = y_square_value(x);
+      //If it's close enough to zero return zero
       if(std::abs(y) < tolerance) {return 0;}
+      //Otherwise just return the sign
       else
 	{
 	  if(y > 0) {return 1;}
@@ -525,29 +406,49 @@ class HomotopyTriangleEllipseCartesian : public GeomObject
     }
 
 
-    //Find the minimum or maximum value of x
+    //Find the minimum or maximum value of x using bisection
+    //based on sign change of the y_square function
     double find_x_limit(const int &sign_incr) const
     {
+      //Increment in x
       double x_incr = sign_incr*0.1;
+      //Initial value
       double x = 0.0;
+      //Storage for previous sign
       int old_sign = sign_y_square(x);
 
+      int counter=0;
+      int max_count=200;
+      
+      //Bisection loop
       do
 	{
+	  //Take a step
 	  x += x_incr;
+	  //What's the new sign
 	  int sign = sign_y_square(x);
-	  //If we'be hit the limit return
+	  //If we're close enough to zero return the value of x
 	  if(sign == 0) {return x;}
 	  //Otherwise check for a sign change
 	  if(sign != old_sign)
 	    {
-	      //Change the incremenet
+	      //Reverse direction and half the increment if there
+	      //is a sign change
 	      x_incr *= -0.5;
 	    }
-	  //Update the sign
+	  //Update the old sign
 	  old_sign = sign;
-	}
-      while(true);
+	  ++counter;
+	  if(counter > max_count)
+	    {
+	      throw
+		OomphLibError("Bisection method failed.",
+			      OOMPH_CURRENT_FUNCTION,
+			      OOMPH_EXCEPTION_LOCATION);
+	    }
+	    }
+      while(true); //Can loop forever because the loop will break
+                   //when the root is found.
       
     }
 
@@ -581,7 +482,8 @@ class HomotopyTriangleEllipseCartesian : public GeomObject
       double y = y_square_value(x);
       //Deal with finite precision
       if(std::abs(y) < 1.0e-14) {y = 0.0;}
-      
+
+      //This shoudln't happen
       if(y < 0.0)
 	{
 	  std::cout << "Y is " << y << "\n";
@@ -602,29 +504,9 @@ class HomotopyTriangleEllipseCartesian : public GeomObject
 	      y = -sqrt(y);
 	    }
 	}
-      
+
+      //Fill in the return values
       r[0] = x; r[1] = y;
-      
-      
-      //Finally convert using the formula given by Andre
-      /*double x = r[0];
-      double y = sqrt((((2.0 - 2.0*pow(x, 2.0))*pow(lambda, 2.0) 
-		- m*(2.0*pow(x, 2.0) + 2.0*(lambda*x) + 2.0*pow(lambda, 2.0) 
-		     + 2.0*(x*pow(lambda, 3.0))))*sqrt(3.0*pow(lambda, 2.0)
-						       + 1.0) 
-	       + m*(3.0*pow(lambda, 5.0) + 3.0*(x*pow(lambda, 4.0)) 
-		    + (pow(x, 2.0) + 4.0)*pow(lambda, 3.0) 
-		    + (pow(x, 3.0) + 2.0*pow(x, 2.0) + 4.0*x - 2.0)*
-		    pow(lambda, 2.0) + lambda*(pow(x, 2.0) + 1.0) 
-		    + pow(x, 3.0) + x) + (2.0 - 2.0*pow(x, 2.0))*
-		       pow(lambda, 2.0)) 
-       / ((2.0 - 2.0*m)*sqrt(3.0*pow(lambda, 2.0) + 1) 
-	  + m*(3.0*pow(lambda, 3.0) + 3.0*(x*pow(lambda, 2.0)) + 3.0*lambda
-	       + 3.0*x - 2.0) + 2.0));
-	
-      r[1] = y;
-      //In the lower-half multiply y by minus 1
-      if(theta > 4.0*atan(1.0)) {r[1] *= -1.0;}*/
     }
 
 
@@ -635,40 +517,18 @@ class HomotopyTriangleEllipseCartesian : public GeomObject
                   const Vector<double>& zeta,
                   Vector<double>& r) const
     {
-      // If we have done the construction, it's a Steady HomotopyTriangleEllipse,
-      // so all time-history values of the position are equal to the position
-      if (Must_clean_up)
-      {
-        position(zeta, r);
-        return;
-      }
-
-      // Otherwise check that the value of t is within range
-#ifdef PARANOID
-      if (t > Geom_data_pt[0]->time_stepper_pt()->nprev_values())
-      {
-        std::ostringstream error_message;
-        error_message << "t > nprev_values() " << t << " "
-                      << Geom_data_pt[0]->time_stepper_pt()->nprev_values()
-                      << std::endl;
-
-        throw OomphLibError(error_message.str(),
-                            OOMPH_CURRENT_FUNCTION,
-                            OOMPH_EXCEPTION_LOCATION);
-      }
-#endif
-
-      // Position Vector
-      r[0] = Geom_data_pt[0]->value(t, 0) * cos(zeta[0]);
-      r[1] = Geom_data_pt[0]->value(t, 1) * sin(zeta[0]);
+      //Boundary is all steady
+      position(zeta, r);
+      return;
     }
-
+    
 
     /// Derivative of position Vector w.r.t. to coordinates:
     /// \f$ \frac{dR_i}{d \zeta_\alpha}\f$ = drdzeta(alpha,i).
     void dposition(const Vector<double>& zeta,
                    DenseMatrix<double>& drdzeta) const
     {
+      //Not implemented so die
       exit(1);
       // Components of the single tangent Vector
       drdzeta(0, 0) = -Geom_data_pt[0]->value(0) * sin(zeta[0]);
@@ -683,6 +543,7 @@ class HomotopyTriangleEllipseCartesian : public GeomObject
     void d2position(const Vector<double>& zeta,
                     RankThreeTensor<double>& ddrdzeta) const
     {
+      //Not implemented so die
       exit(1);
       // Components of the derivative of the tangent Vector
       ddrdzeta(0, 0, 0) = -Geom_data_pt[0]->value(0) * cos(zeta[0]);
@@ -699,6 +560,7 @@ class HomotopyTriangleEllipseCartesian : public GeomObject
                     DenseMatrix<double>& drdzeta,
                     RankThreeTensor<double>& ddrdzeta) const
     {
+      //Not implemented so die
       exit(1);
       double a = Geom_data_pt[0]->value(0);
       double b = Geom_data_pt[0]->value(1);
@@ -733,13 +595,103 @@ class HomotopyTriangleEllipseCartesian : public GeomObject
     /// Vector of pointers to Data items that affects the object's shape
     Vector<Data*> Geom_data_pt;
 
-    /// Do I need to clean up?
-    bool Must_clean_up;
-
     /// Storage for x_limits
     Vector<double> X_limit;
 
 };
+
+
+namespace oomph
+{
+
+  ///Overload Poisson Elements to allow specific output calculations
+  class MyPoissonElement:
+    public ProjectablePoissonElement<TPoissonElement<2,3> >
+  {
+  public:
+    
+    ///Constructor
+    MyPoissonElement() : ProjectablePoissonElement<TPoissonElement<2,3> >()
+    {
+    }
+    
+    ///Destructor
+    ~MyPoissonElement()
+    {
+    }
+    
+    
+    //Calculate the integrated value of u over the element
+    double integrate_u()
+    {
+      // Initialise
+      double integrated_u=0.0;
+      
+      // Vector of local coordinates
+      Vector<double> s(2);
+      
+      // Set the value of n_intpt
+      unsigned n_intpt = integral_pt()->nweight();
+      
+      // Loop over the integration points
+      for (unsigned ipt = 0; ipt < n_intpt; ipt++)
+	{
+	  // Assign values of s
+	  for (unsigned i = 0; i < 2; i++)
+	    {
+	      s[i] = integral_pt()->knot(ipt, i);
+	    }
+	  
+	  // Get the integral weight
+	  double w = integral_pt()->weight(ipt);
+	  
+	  // Get jacobian of mapping
+	  double J = J_eulerian(s);
+	  
+	  // Get FE function value
+	  double u_fe = interpolated_u_poisson(s);
+	  
+	  //Add to the integral
+	  integrated_u += u_fe*w*J;
+	}
+      
+      return integrated_u;
+    }
+    
+  };
+  
+  
+  //=======================================================================
+  /// Face geometry for element is the same as that for the underlying
+  /// wrapped element
+  //=======================================================================
+  template<>
+  class FaceGeometry<MyPoissonElement>
+    : public virtual
+  FaceGeometry<TPoissonElement<2,3> >
+  {
+  public:
+    FaceGeometry() :
+      FaceGeometry<TPoissonElement<2,3> >() {}
+  };
+  
+  
+  //=======================================================================
+  /// Face geometry of the Face Geometry for element is the same as
+  /// that for the underlying wrapped element
+  //=======================================================================
+  template<>
+  class FaceGeometry<FaceGeometry<MyPoissonElement> >
+    : public virtual
+  FaceGeometry<FaceGeometry<TPoissonElement<2,3> > > 
+  {
+  public:
+    FaceGeometry() :
+      FaceGeometry<FaceGeometry<TPoissonElement<2,3> > > () {}
+  };
+
+
+} // namespace oomph
 
 
 
@@ -753,10 +705,13 @@ class UnstructuredPoissonProblem : public virtual Problem
 public:
 
  /// Constructor
- UnstructuredPoissonProblem();
+  UnstructuredPoissonProblem(const double &a, const double &b, const double &m);
     
  /// Destructor
- ~UnstructuredPoissonProblem(){};
+ ~UnstructuredPoissonProblem()
+  {
+    Trace_file.close();
+  };
 
  /// Actions before adapt. Empty
  void actions_before_adapt() {}
@@ -780,7 +735,8 @@ public:
   }
   
  /// Doc the solution
- void doc_solution(const std::string& comment="");
+  void doc_solution(const std::string& comment="",
+		    const bool &write_trace=true);
  
 
 private:
@@ -801,6 +757,9 @@ private:
  /// Trace file to document norm of solution
  ofstream Trace_file;
 
+  /// Storage for geometric parameters
+  double A, B, M;
+  
 }; // end_of_problem_class
 
 
@@ -811,7 +770,9 @@ private:
 /// Constructor
 //========================================================================
 template<class ELEMENT>
-UnstructuredPoissonProblem<ELEMENT>::UnstructuredPoissonProblem()
+UnstructuredPoissonProblem<ELEMENT>::UnstructuredPoissonProblem
+(const double &geometry_a, const double &geometry_b,
+ const double &geometry_m) : A(geometry_a), B(geometry_b), M(geometry_m)
 {          
  // Intrinsic coordinate along GeomObject
  Vector<double> zeta(1);
@@ -820,13 +781,10 @@ UnstructuredPoissonProblem<ELEMENT>::UnstructuredPoissonProblem()
  Vector<double> posn(2);
  
  // HomotopyTriangleEllipse defining the outer boundary
- double x_center = 0.0;
- double y_center = 0.0;
- double A = 1.0;
- double B = 0.5766;//0.6;
- double M = 0.3529;//0.1;
  HomotopyTriangleEllipseCartesian * outer_boundary_ellipse_pt =
-   new HomotopyTriangleEllipseCartesian(A,B,M);
+   new HomotopyTriangleEllipseCartesian(geometry_a,
+					geometry_b,
+				        geometry_m);
 
  //Let's see the shape
  {
@@ -843,126 +801,47 @@ UnstructuredPoissonProblem<ELEMENT>::UnstructuredPoissonProblem()
        zeta[0] += theta_incr;
      }
    shape.close();
-   //exit(1);
    }
        
  // Pointer to the closed curve that defines the outer boundary
  TriangleMeshClosedCurve* closed_curve_pt=0;
 
- // Build outer boundary as Polygon?
- //---------------------------------
- bool polygon_for_outer_boundary=false;
-#ifdef OUTER_POLYGON
- polygon_for_outer_boundary=true;
-#endif
- if (polygon_for_outer_boundary)
-  { 
-   // Number of segments that make up the boundary
-   unsigned n_seg = 5; 
-   double unit_zeta = 0.5*MathematicalConstants::Pi/double(n_seg);
-   
-   // The boundary is bounded by two distinct boundaries, each
-   // represented by its own polyline
-   Vector<TriangleMeshCurveSection*> boundary_polyline_pt(2);
-   
-   // Vertex coordinates on boundary
-   Vector<Vector<double> > bound_coords(n_seg+1);
-   
-   // First part of the boundary 
-   //---------------------------
-   for(unsigned ipoint=0; ipoint<n_seg+1;ipoint++)
-    {
-     // Resize the vector 
-     bound_coords[ipoint].resize(2);
-     
-     // Get the coordinates
-     zeta[0]=unit_zeta*double(ipoint);
-     outer_boundary_ellipse_pt->position(zeta,posn);
-     bound_coords[ipoint][0]=posn[0]+x_center;
-     bound_coords[ipoint][1]=posn[1]+y_center;
-    }
-   
-   // Build the 1st boundary polyline
-   unsigned boundary_id=0;
-   boundary_polyline_pt[0]=new TriangleMeshPolyLine(bound_coords,boundary_id);
-   
-   // Second part of the boundary
-   //----------------------------
-   unit_zeta*=3.0;
-   for(unsigned ipoint=0; ipoint<n_seg+1;ipoint++)
-    {
-     // Resize the vector 
-     bound_coords[ipoint].resize(2);
-     
-     // Get the coordinates
-     zeta[0]=(unit_zeta*double(ipoint))+0.5*MathematicalConstants::Pi;
-     outer_boundary_ellipse_pt->position(zeta,posn);
-     bound_coords[ipoint][0]=posn[0]+x_center;
-     bound_coords[ipoint][1]=posn[1]+y_center;
-    }
-   
-   // Build the 2nd boundary polyline
-   boundary_id=1;
-   boundary_polyline_pt[1]=new TriangleMeshPolyLine(bound_coords,boundary_id);
-   
-
-   // Create the triangle mesh polygon for outer boundary
-   //----------------------------------------------------
-   TriangleMeshPolygon *outer_polygon =
-    new TriangleMeshPolygon(boundary_polyline_pt);
-
-   // Enable redistribution of polylines
-   outer_polygon->
-    enable_redistribution_of_segments_between_polylines();
-
-   // Set the pointer
-   closed_curve_pt = outer_polygon;
-
-  }
  // Build outer boundary as curvilinear
  //------------------------------------
- else
-  {   
-
-   // Provide storage for pointers to the two parts of the curvilinear boundary
-   Vector<TriangleMeshCurveSection*> outer_curvilinear_boundary_pt(2);
-   
-   // First bit
-   //----------
-   double zeta_start=0.0;
-   double zeta_end=MathematicalConstants::Pi;
-   unsigned nsegment=5;
-   unsigned boundary_id=0;
-   outer_curvilinear_boundary_pt[0]=new TriangleMeshCurviLine(
-    outer_boundary_ellipse_pt,zeta_start,zeta_end,nsegment,boundary_id);
-   
-   // Second bit
-   //-----------
-   zeta_start=MathematicalConstants::Pi;
-   zeta_end=2.0*MathematicalConstants::Pi;
-   nsegment=5;
-   boundary_id=1;
-   outer_curvilinear_boundary_pt[1]=new TriangleMeshCurviLine(
-    outer_boundary_ellipse_pt,zeta_start,zeta_end,nsegment,boundary_id);
-   
-   // Combine to curvilinear boundary and define the
-   //--------------------------------
-   // outer boundary
-   //--------------------------------
-   closed_curve_pt=
-     new TriangleMeshClosedCurve(outer_curvilinear_boundary_pt);
-   
-  }
  
-
+ // Provide storage for pointers to the two parts of the curvilinear boundary
+ Vector<TriangleMeshCurveSection*> outer_curvilinear_boundary_pt(2);
  
- // Uncomment this as an exercise to observe how a
- // layer of fine elements get left behind near the boundary
- // once the tanh step has swept past: 
-
- // closed_curve_pt->disable_polyline_refinement();
- // closed_curve_pt->disable_polyline_unrefinement();
+ // First bit (upper half of the curve)
+ //------------------------------------
+ double zeta_start=0.0;
+ double zeta_end=MathematicalConstants::Pi;
+ unsigned nsegment=20;
+ unsigned boundary_id=0;
+ outer_curvilinear_boundary_pt[0]=
+   new TriangleMeshCurviLine(
+			     outer_boundary_ellipse_pt,
+			     zeta_start,zeta_end,nsegment,boundary_id);
  
+ // Second bit (lower half of the curve)
+ //--------------------------------------
+ zeta_start=MathematicalConstants::Pi;
+ zeta_end=2.0*MathematicalConstants::Pi;
+ nsegment=20;
+ boundary_id=1;
+ outer_curvilinear_boundary_pt[1]=
+   new TriangleMeshCurviLine(
+			     outer_boundary_ellipse_pt,
+			     zeta_start,zeta_end,nsegment,boundary_id);
+   
+ // Combine to curvilinear boundary and define the
+ //--------------------------------
+ // outer boundary
+ //--------------------------------
+ closed_curve_pt=
+   new TriangleMeshClosedCurve(outer_curvilinear_boundary_pt);
+ 
+  
  // Now build the mesh
  //===================
 
@@ -986,8 +865,8 @@ UnstructuredPoissonProblem<ELEMENT>::UnstructuredPoissonProblem()
  My_mesh_pt->spatial_error_estimator_pt()=error_estimator_pt;
 
  // Set element size limits
- My_mesh_pt->max_element_size()=0.2;
- My_mesh_pt->min_element_size()=0.002; 
+ My_mesh_pt->max_element_size()=0.1;
+ My_mesh_pt->min_element_size()=0.001; 
  
  // Set boundary condition and complete the build of all elements
  complete_problem_setup();
@@ -995,7 +874,7 @@ UnstructuredPoissonProblem<ELEMENT>::UnstructuredPoissonProblem()
  // Open trace file
  char filename[100];
  sprintf(filename,"RESLT/trace.dat");
- Trace_file.open(filename);
+ Trace_file.open(filename,std::ios_base::app);
 
  // Setup equation numbering scheme
  oomph_info <<"Number of equations: " 
@@ -1040,7 +919,7 @@ void UnstructuredPoissonProblem<ELEMENT>::complete_problem_setup()
    ELEMENT* el_pt = dynamic_cast<ELEMENT*>(My_mesh_pt->element_pt(e));
    
    //Set the source function pointer
-   el_pt->source_fct_pt() = &TanhSolnForPoisson::get_source;
+   el_pt->source_fct_pt() = &ConstantSourceFunction::get_source;
   }
  
  // Re-apply Dirichlet boundary conditions (projection ignores
@@ -1080,8 +959,8 @@ void UnstructuredPoissonProblem<ELEMENT>::apply_boundary_conditions()
 /// Doc the solution
 //========================================================================
 template<class ELEMENT>
-void UnstructuredPoissonProblem<ELEMENT>::doc_solution(const 
-                                                       std::string& comment)
+void UnstructuredPoissonProblem<ELEMENT>::
+doc_solution(const std::string& comment, const bool &write_trace)
 { 
  ofstream some_file;
  char filename[100];
@@ -1090,46 +969,64 @@ void UnstructuredPoissonProblem<ELEMENT>::doc_solution(const
  unsigned npts;
  npts=5; 
  
- sprintf(filename,"RESLT/soln%i.dat",Doc_info.number());
+ sprintf(filename,"RESLT/soln_A%g_B%g_M%g_%i.dat",A,B,M,Doc_info.number());
  some_file.open(filename);
  this->My_mesh_pt->output(some_file,npts); 
  some_file << "TEXT X = 22, Y = 92, CS=FRAME T = \"" 
            << comment << "\"\n";
  some_file.close();
- 
- // Output exact solution 
- //----------------------
- sprintf(filename,"RESLT/exact_soln%i.dat",Doc_info.number());
- some_file.open(filename);
- My_mesh_pt->output_fct(some_file,npts,TanhSolnForPoisson::get_exact_u); 
- some_file.close();
- 
+  
  // Output boundaries
  //------------------
- sprintf(filename,"RESLT/boundaries%i.dat",Doc_info.number());
+ sprintf(filename,"RESLT/boundaries_A%g_B%g_M%g_%i.dat",
+	 A,B,M,Doc_info.number());
  some_file.open(filename);
  My_mesh_pt->output_boundaries(some_file);
  some_file.close();
 
-
- // Doc error and return of the square of the L2 error
- //---------------------------------------------------
- double error,norm,dummy_error,zero_norm;
- sprintf(filename,"RESLT/error%i.dat",Doc_info.number());
- some_file.open(filename);
- My_mesh_pt->compute_error(some_file,TanhSolnForPoisson::get_exact_u,
-                           error,norm); 
+ if(write_trace)
+   {
+     //Calculate the area and flux
+     double area=0.0;
+     double flux = 0.0;
+     unsigned n_element = this->My_mesh_pt->nelement();
+     for(unsigned e=0;e<n_element;++e)
+       {
+	 MyPoissonElement* element_pt=dynamic_cast<MyPoissonElement*>
+	   (this->My_mesh_pt->finite_element_pt(e));
+	 area += element_pt->size();
+	 flux += element_pt->integrate_u();
+       }
+     
+     //Calculate the perimeter
+     double perimeter=0.0;
+     //Loop over the two boundaries
+     for(unsigned b=0;b<2;++b)
+       {
+	 unsigned n_bound_element = this->My_mesh_pt->nboundary_element(b);
+	 for(unsigned e=0;e<n_bound_element;++e)
+	   {
+	     //Create a temporary flux element adjacent to the boundary
+	     FiniteElement* boundary_el_pt =
+	       new PoissonFluxElement<MyPoissonElement>
+	       (this->My_mesh_pt->boundary_element_pt(b,e),
+		this->My_mesh_pt->face_index_at_boundary(b,e));
+	     
+	     //Add the size of the element to the perimeter
+	     perimeter += boundary_el_pt->size();
+	     //Delete the element
+	     delete boundary_el_pt;
+	   }
+       }
+     
+     
+     double fRe = 8.0*area*area*area/(perimeter*perimeter*flux);
+     
+     Trace_file << A  << " " << B << " "
+		<< M<< " " << area << " " << perimeter
+		<< " " << flux << " " << fRe << "\n";
+   }
  
- My_mesh_pt->compute_error(some_file,TanhSolnForPoisson::zero,
-                           dummy_error,zero_norm); 
- some_file.close();
-
- // Doc L2 error and norm of solution
- oomph_info << "\nNorm of error   : " << sqrt(error) << std::endl; 
- oomph_info << "Norm of exact solution: " << sqrt(norm) << std::endl;
- oomph_info << "Norm of computed solution: " << sqrt(dummy_error) << std::endl;
- Trace_file << sqrt(norm) << " " << sqrt(dummy_error) << std::endl;
-
  // Increment the doc_info number
  Doc_info.number()++;
 
@@ -1141,58 +1038,91 @@ void UnstructuredPoissonProblem<ELEMENT>::doc_solution(const
 //============================================================
 int main(int argc, char **argv)
 {
- // Store command line arguments
- CommandLineArgs::setup(argc,argv);
- 
- // Define possible command line arguments and parse the ones that
- // were actually specified
- 
- // Validation?
- CommandLineArgs::specify_command_line_flag("--validation");
+  //Sanity check (circle)
+  {
+    //Set the geometric parameters
+    double A = 1.0;
+    double B = 1.0;
+    double M = 0.0;
+    
+    // Create problem
+    UnstructuredPoissonProblem<MyPoissonElement> problem(A,B,M);
+    
+    // Doc the initial mesh
+    //=====================
+    {
+      std::stringstream comment_stream;
+      comment_stream << "Initial mesh ";
+      problem.doc_solution(comment_stream.str(),false);
+    } 
+    
+    // Solve with spatial adaptation
+    //==============================
+    unsigned max_adapt=3;
+    problem.newton_solve(max_adapt);
+    
+    // Doc the solution
+    //=================
+    problem.doc_solution();
+  }
 
- // Parse command line
- CommandLineArgs::parse_and_assign(); 
- 
- // Doc what has actually been specified on the command line
- CommandLineArgs::doc_specified_flags();
- 
- // Create problem
- UnstructuredPoissonProblem<ProjectablePoissonElement<TPoissonElement<2,3> > >
-  problem;
- 
-//  // Solve, adapt and doc manually
-//  unsigned nadapt=4;
-//  for (unsigned i=0;i<nadapt;i++)
-//   {
-//    problem.newton_solve();   
-//    std::stringstream comment_stream;
-//    comment_stream << "Solution after " << i << " manual adaptations";
-//    problem.doc_solution(comment_stream.str());
-//    if (i!=(nadapt-1))  problem.adapt();
-//   }
- 
- 
- // Doc the initial mesh
- //=====================
- {
-   std::stringstream comment_stream;
-   comment_stream << "Initial mesh ";
-   problem.doc_solution(comment_stream.str());
- } 
 
- // Solve with spatial adaptation
- //==============================
- unsigned max_adapt=3;
- if (CommandLineArgs::command_line_flag_has_been_set("--validation"))
-   {
-     max_adapt=1;
-   }
- problem.newton_solve(max_adapt);
+  //First geometry
+  {
+    //Set the geometric parameters
+    double A = 1.0;
+    double B = 0.5766;//0.6;
+    double M = 0.3529;//0.1;
+    
+    // Create problem
+    UnstructuredPoissonProblem<MyPoissonElement> problem(A,B,M);
+    
+    // Doc the initial mesh
+    //=====================
+    {
+      std::stringstream comment_stream;
+      comment_stream << "Initial mesh ";
+      problem.doc_solution(comment_stream.str(),false);
+    } 
+    
+    // Solve with spatial adaptation
+    //==============================
+    unsigned max_adapt=3;
+    problem.newton_solve(max_adapt);
+    
+    // Doc the solution
+    //=================
+    problem.doc_solution();
+  }
+
+
+  //Second Geometry
+  {
+    double A = 1.0;
+    double B = 1.4223;//0.6;
+    double M = 0.3336;//0.1;
+    
+    // Create problem
+    UnstructuredPoissonProblem<MyPoissonElement> problem(A,B,M);
+    
+    // Doc the initial mesh
+    //=====================
+    {
+      std::stringstream comment_stream;
+      comment_stream << "Initial mesh ";
+      problem.doc_solution(comment_stream.str(),false);
+    } 
+    
+    // Solve with spatial adaptation
+    //==============================
+    unsigned max_adapt=3;
+    problem.newton_solve(max_adapt);
+    
+    // Doc the solution
+    //=================
+    problem.doc_solution();
+  }
  
- // Doc the solution
- //=================
- std::stringstream comment_stream;
- comment_stream << "Solution for tan(phi) = " << TanhSolnForPoisson::TanPhi; 
- problem.doc_solution(comment_stream.str());
- 
+
+  
 } //End of main
