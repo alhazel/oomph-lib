@@ -1521,7 +1521,7 @@ void deform_interface(const double &epsilon,
  
   
  /// Doc the solution.
- void doc_solution(std::ofstream &trace);
+ void doc_solution(std::ofstream &trace, const bool &output_flag);
 
  /// Set the boundary conditions
  void set_boundary_conditions(const double &time);
@@ -1753,6 +1753,9 @@ template<class ELEMENT, class INTERFACE_ELEMENT>
 SurfactantProblem<ELEMENT,INTERFACE_ELEMENT>::
 SurfactantProblem(const bool &pin) : Surface_pinned(pin), Periodic_index(50)
 {
+  //Set the linear solver to be mumps
+  //this->linear_solver_pt() = new MumpsSolver;
+  
  //Allocate an (adaptive) timestepper
   add_time_stepper_pt(new BDF<2>(true));
  //Don't worry if the estimated error is above the tolerance
@@ -2043,25 +2046,29 @@ SurfactantProblem(const bool &pin) : Surface_pinned(pin), Periodic_index(50)
 
  // Set the maximum refinement level for the mesh to 4
  //Bulk_mesh_pt->max_refinement_level() = 4;
-
+ 
+ //Set a reference flux
+ dynamic_cast<Z2ErrorEstimator*>(Bulk_mesh_pt->spatial_error_estimator_pt())
+   ->reference_flux_norm()=1.0;
+ 
  // Set error targets for refinement
  Bulk_mesh_pt->max_permitted_error() = 1.0e-3;
  Bulk_mesh_pt->min_permitted_error() = 1.0e-5;
 
  //Set a smaller minimum element size
- Bulk_mesh_pt->min_element_size() = 0.001; //0.0001
+ Bulk_mesh_pt->min_element_size() = 0.0001; //0.001
  //Set a smaller maximum element size as well
  Bulk_mesh_pt->max_element_size() = 0.1;
  
  //Set the refinement tolerance for the interface
- /*interface_polyline_pt->set_refinement_tolerance(0.05);
- interface_polyline_pt->set_unrefinement_tolerance(0.001);
+ interface_polyline_pt->set_refinement_tolerance(0.05); //0.05
+ interface_polyline_pt->set_unrefinement_tolerance(0.001);  
  //Need to be consistent on the side walls
  for(unsigned i=0;i<4;++i)
   {
-   boundary_polyline_pt[i]->set_refinement_tolerance(0.05);
+    boundary_polyline_pt[i]->set_refinement_tolerance(0.05); //Not consistent!
    boundary_polyline_pt[i]->set_unrefinement_tolerance(0.001);
-   }*/
+   }
 
  
  // Define a constitutive law for the solid equations: generalised Hookean
@@ -2506,7 +2513,7 @@ void SurfactantProblem<ELEMENT,INTERFACE_ELEMENT>::set_boundary_conditions(
 //========================================================================
 template<class ELEMENT,class INTERFACE_ELEMENT>
 void SurfactantProblem<ELEMENT,INTERFACE_ELEMENT>::doc_solution(
- ofstream &trace)
+ofstream &trace, const bool &output_flag)
 { 
  //Declare an output stream and filename
  ofstream some_file;
@@ -2515,8 +2522,10 @@ void SurfactantProblem<ELEMENT,INTERFACE_ELEMENT>::doc_solution(
  // Number of plot points: npts x npts
  unsigned npts=5;
 
- // Output solution 
+ // Output solution only if requested
  //-----------------
+ if(output_flag)
+   {
  sprintf(filename,"%s/soln%i.dat",Doc_info.directory().c_str(),
          Doc_info.number());
  some_file.open(filename);
@@ -2526,7 +2535,8 @@ void SurfactantProblem<ELEMENT,INTERFACE_ELEMENT>::doc_solution(
    Bulk_mesh_pt->finite_element_pt(e)->output(some_file,npts);
   }
  some_file.close();
-
+   }
+ 
  //Output the interface
  sprintf(filename,"%s/int%i.dat",Doc_info.directory().c_str(),
          Doc_info.number());
@@ -2649,7 +2659,7 @@ int main(int argc, char **argv)
  problem.steady_newton_solve();
 
  //Document the solution
- problem.doc_solution(trace);
+ problem.doc_solution(trace,true);
 
  //Now release the interface for real fun
  problem.unpin_surface();
@@ -2660,14 +2670,17 @@ int main(int argc, char **argv)
  //Initialise the value of the timestep and set initial values 
  //of previous time levels assuming an impulsive start.
  problem.deform_interface(Global_Physical_Variables::Ha,1);
- problem.doc_solution(trace);
+ problem.doc_solution(trace,true);
  problem.assign_initial_values_impulsive(dt);
 
  //Set the number of timesteps to our default value
- unsigned n_steps = 1000;
+ unsigned n_steps = 10000; //1000
 
  //Set the freqency of refinement
- unsigned refine_after_n_steps = 10;
+ unsigned refine_after_n_steps = 10; //Worked OK refining every step
+
+ //Set the frequency of dumping
+ unsigned output_every_n_steps = 100;
  
  //If we have a command line argument, perform fewer steps 
  //(used for self-test runs)
@@ -2677,7 +2690,7 @@ int main(int argc, char **argv)
  
  //This is the code for reloading a previously dumped solution
  //If you want to reload then uncomment this 
- /* {
+  {
    //The dumpfile must be renamed to restart_file.dat
    std::ifstream restart_file("restart_file.dat");
    bool unsteady_restart;
@@ -2690,8 +2703,7 @@ int main(int argc, char **argv)
 
    //The next value of dt may need to be adjusted for a restart.
 
-  }*/
- 
+  } 
   
  
  //Perform n_steps timesteps
@@ -2706,10 +2718,13 @@ int main(int argc, char **argv)
     else
     {
      //Unsteady timestep (for fixed mesh)
-     dt_next = problem.adaptive_unsteady_newton_solve(dt,1.0e-5);
+      dt_next = problem.adaptive_unsteady_newton_solve(dt,1.0e-5);
     }
    dt = dt_next;
-   problem.doc_solution(trace);
+   bool output_flag=false;
+   if((i%output_every_n_steps==0)) {output_flag=true;}
+   problem.doc_solution(trace,output_flag);
+   
    //Dump the most recently converged solution in a form suitable for restarts.
    //This will be overwritten after each successful solution.
    problem.dump("dumpfile.dat");
